@@ -41,11 +41,6 @@ public protocol ChartDelegate: class {
 }
 
 /**
-Represent the x- and the y-axis values for each point in a chart series.
-*/
-typealias ChartPoint = (x: Double, y: Double)
-
-/**
 Set the a x-label orientation.
 */
 public enum ChartLabelOrientation {
@@ -213,7 +208,7 @@ open class Chart: UIControl {
     // MARK: Private variables
 
     fileprivate var highlightShapeLayer: CAShapeLayer!
-    fileprivate var layerStore: [CAShapeLayer] = []
+    fileprivate var layerStore: [CALayer] = []
 
     fileprivate var drawingHeight: CGFloat!
     fileprivate var drawingWidth: CGFloat!
@@ -407,7 +402,10 @@ open class Chart: UIControl {
         if max.x == nil { max.x = 0 }
         if max.y == nil { max.y = 0 }
 
-        return (min: (x: min.x!, y: min.y!), max: (x: max.x!, max.y!))
+        return (
+            min: ChartPoint(x: min.x!, y: min.y!, color: nil),
+            max: ChartPoint(x: max.x!, y: max.y!, color: nil)
+        )
     }
 
     fileprivate func scaleValuesOnXAxis(_ values: [Double]) -> [Double] {
@@ -464,29 +462,41 @@ open class Chart: UIControl {
     fileprivate func drawLine(_ xValues: [Double], yValues: [Double], seriesIndex: Int) {
         // YValues are "reverted" from top to bottom, so 'above' means <= level
         let isAboveZeroLine = yValues.max()! <= self.scaleValueOnYAxis(series[seriesIndex].colors.zeroLevel)
+
+        let seriesColors = series[seriesIndex].colors
+        let colors = series[seriesIndex].data.map { (point) -> CGColor in
+            var updated = isAboveZeroLine ? seriesColors.above.cgColor : seriesColors.below.cgColor
+
+            if let color = point.color?.cgColor {
+                updated = color
+            }
+
+            return updated
+        }
+
         let path = CGMutablePath()
         path.move(to: CGPoint(x: CGFloat(xValues.first!), y: CGFloat(yValues.first!)))
         for i in 1..<yValues.count {
-            let y = yValues[i]
-            path.addLine(to: CGPoint(x: CGFloat(xValues[i]), y: CGFloat(y)))
+            path.addLine(to: CGPoint(x: CGFloat(xValues[i]), y: CGFloat(yValues[i])))
         }
 
         let lineLayer = CAShapeLayer()
         lineLayer.frame = self.bounds
         lineLayer.path = path
-
-        if isAboveZeroLine {
-            lineLayer.strokeColor = series[seriesIndex].colors.above.cgColor
-        } else {
-            lineLayer.strokeColor = series[seriesIndex].colors.below.cgColor
-        }
+        lineLayer.strokeColor = UIColor.black.cgColor
         lineLayer.fillColor = nil
         lineLayer.lineWidth = lineWidth
         lineLayer.lineJoin = CAShapeLayerLineJoin.bevel
 
-        self.layer.addSublayer(lineLayer)
+        let gradient = CAGradientLayer()
+        gradient.colors = colors
+        gradient.frame = CGRect(origin: .zero, size: frame.size)
+        gradient.mask = lineLayer
+        gradient.startPoint = CGPoint(x: 0.0, y: 0.5)
+        gradient.endPoint = CGPoint(x: 1.0, y: 0.5)
+        layer.addSublayer(gradient)
 
-        layerStore.append(lineLayer)
+        layerStore.append(gradient)
     }
 
     fileprivate func drawArea(_ xValues: [Double], yValues: [Double], seriesIndex: Int) {
@@ -837,7 +847,7 @@ open class Chart: UIControl {
     fileprivate class func intersectionWithLevel(_ p1: ChartPoint, and p2: ChartPoint, level: Double) -> ChartPoint {
         let dy1 = level - p1.y
         let dy2 = level - p2.y
-        return (x: (p2.x * dy1 - p1.x * dy2) / (dy1 - dy2), y: level)
+        return ChartPoint(x: (p2.x * dy1 - p1.x * dy2) / (dy1 - dy2), y: level, color: nil)
     }
 }
 
