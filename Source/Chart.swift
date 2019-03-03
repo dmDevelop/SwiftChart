@@ -612,7 +612,7 @@ open class Chart: UIControl {
                 label.frame.size.width = (drawingWidth / CGFloat(labels.count)) - padding * 2
                 label.textAlignment = xLabelsTextAlignment
             } else {
-                label.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 2))
+                label.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi * 3 / 2))
 
                 // Adjust vertical position according to the label's height
                 label.frame.origin.y += label.frame.size.height / 2
