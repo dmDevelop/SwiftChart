@@ -205,6 +205,8 @@ open class Chart: UIControl {
     */
     open var areaAlphaComponent: CGFloat = 0.1
 
+    private(set) var areaPath: CGMutablePath?
+
     // MARK: Private variables
 
     fileprivate var highlightShapeLayer: CAShapeLayer!
@@ -524,6 +526,8 @@ open class Chart: UIControl {
         self.layer.addSublayer(areaLayer)
 
         layerStore.append(areaLayer)
+
+        areaPath = area
     }
 
     fileprivate func drawAxes() {
