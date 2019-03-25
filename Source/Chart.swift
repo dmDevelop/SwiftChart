@@ -205,7 +205,7 @@ open class Chart: UIControl {
     */
     open var areaAlphaComponent: CGFloat = 0.1
 
-    private(set) var areaPath: CGMutablePath?
+    open var areaPath: CGMutablePath?
 
     // MARK: Private variables
 
