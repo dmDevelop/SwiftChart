@@ -14,7 +14,7 @@ open class ChartSeries {
     /**
     The data used for the chart series.
     */
-    open var data: [(x: Double, y: Double)]
+    open var data: [ChartPoint]
 
     /**
     When set to `false`, will hide the series line. Useful for drawing only the area with `area=true`.
@@ -46,21 +46,41 @@ open class ChartSeries {
 
     public init(_ data: [Double]) {
         self.data = []
+
         data.enumerated().forEach { (x, y) in
-            let point: (x: Double, y: Double) = (x: Double(x), y: y)
-            self.data.append(point)
+            self.data.append(ChartPoint(x: Double(x), y: y, color: nil))
         }
     }
 
     public init(data: [(x: Double, y: Double)]) {
+        self.data = data.map { ChartPoint(x: $0.x, y: $0.y, color: nil) }
+    }
+
+    public init(data: [ChartPoint]) {
         self.data = data
     }
 
     public init(data: [(x: Int, y: Double)]) {
-      self.data = data.map { (Double($0.x), Double($0.y)) }
+        self.data = data.map { ChartPoint(x: Double($0.x), y: $0.y, color: nil) }
     }
-    
+
     public init(data: [(x: Float, y: Float)]) {
-        self.data = data.map { (Double($0.x), Double($0.y)) }
+        self.data = data.map { ChartPoint(x: Double($0.x), y: Double($0.y), color: nil) }
+    }
+}
+
+/**
+ Represent the x- and the y-axis values for each point in a chart series.
+ */
+public struct ChartPoint {
+
+    public let x: Double
+    public let y: Double
+    public var color: UIColor?
+
+    public init(x: Double, y: Double, color: UIColor?) {
+        self.x = x
+        self.y = y
+        self.color = color
     }
 }
